@@ -1,0 +1,162 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: dev
+  namespace: platform-addons
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: ingress-nginx
+    sources:
+      direct: true
+  promotionTemplate:
+    spec:
+      vars:
+      - name: gitRepo
+        value: https://github.com/madmatt112/here-be-akuity
+      - name: addonChartRepo
+        value: https://kubernetes.github.io/ingress-nginx
+      steps:
+      - uses: git-clone
+        config:
+          repoURL: ${{ vars.gitRepo }}
+          checkout:
+          - branch: main
+            path: ./src
+          - branch: addons/dev
+            create: true
+            path: ./out
+      - uses: git-clear
+        config:
+          path: ./out
+      # Pin the umbrella chart's dependency to the version in this Freight.
+      - uses: helm-update-chart
+        as: update-chart
+        config:
+          path: ./src/addons/ingress-nginx
+          charts:
+          - repository: ${{ vars.addonChartRepo }}
+            name: ingress-nginx
+            version: ${{ chartFrom(vars.addonChartRepo).Version }}
+      # Render the umbrella chart to a single plain-YAML file (RMP artifact).
+      - uses: helm-template
+        config:
+          path: ./src/addons/ingress-nginx
+          releaseName: ingress-nginx
+          valuesFiles:
+          - ./src/addons/ingress-nginx/values.yaml
+          - ./src/addons/ingress-nginx/dev-values.yaml
+          ignoreMissingValueFiles: true
+          buildDependencies: true
+          includeCRDs: true
+          outPath: ./out/manifests.yaml
+      - uses: git-commit
+        as: commit
+        config:
+          path: ./out
+          message: ${{ outputs['update-chart'].commitMessage }}
+      - uses: git-push
+        config:
+          path: ./out
+          targetBranch: addons/dev
+      # Update the dev cluster's add-on Application (selected by labels the
+      # ApplicationSet stamps on each generated app).
+      - uses: argocd-update
+        config:
+          apps:
+          - selector:
+              matchLabels:
+                addon: ingress-nginx
+                env: dev
+            sources:
+            - repoURL: ${{ vars.gitRepo }}
+              desiredRevision: ${{ outputs.commit.commit }}
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: prod
+  namespace: platform-addons
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: ingress-nginx
+    sources:
+      # Freight must clear dev before it is eligible for prod.
+      stages:
+      - dev
+  promotionTemplate:
+    spec:
+      vars:
+      - name: gitRepo
+        value: https://github.com/madmatt112/here-be-akuity
+      - name: addonChartRepo
+        value: https://kubernetes.github.io/ingress-nginx
+      steps:
+      - uses: git-clone
+        config:
+          repoURL: ${{ vars.gitRepo }}
+          checkout:
+          - branch: main
+            path: ./src
+          - branch: addons/prod
+            create: true
+            path: ./out
+      - uses: git-clear
+        config:
+          path: ./out
+      - uses: helm-update-chart
+        as: update-chart
+        config:
+          path: ./src/addons/ingress-nginx
+          charts:
+          - repository: ${{ vars.addonChartRepo }}
+            name: ingress-nginx
+            version: ${{ chartFrom(vars.addonChartRepo).Version }}
+      - uses: helm-template
+        config:
+          path: ./src/addons/ingress-nginx
+          releaseName: ingress-nginx
+          valuesFiles:
+          - ./src/addons/ingress-nginx/values.yaml
+          - ./src/addons/ingress-nginx/prod-values.yaml
+          ignoreMissingValueFiles: true
+          buildDependencies: true
+          includeCRDs: true
+          outPath: ./out/manifests.yaml
+      - uses: git-commit
+        as: commit
+        config:
+          path: ./out
+          message: ${{ outputs['update-chart'].commitMessage }}
+      # PR-gate prod: push to a generated branch, open a PR into addons/prod.
+      - uses: git-push
+        as: push
+        config:
+          path: ./out
+          generateTargetBranch: true
+      - uses: git-open-pr
+        as: open-pr
+        config:
+          repoURL: ${{ vars.gitRepo }}
+          sourceBranch: ${{ outputs.push.branch }}
+          targetBranch: addons/prod
+      - uses: git-wait-for-pr
+        as: wait-for-pr
+        config:
+          repoURL: ${{ vars.gitRepo }}
+          prNumber: ${{ outputs['open-pr'].pr.id }}
+      # Use the POST-MERGE commit on addons/prod as the desired revision,
+      # not the pre-merge commit (avoids the argocd-update sync loop).
+      - uses: argocd-update
+        config:
+          apps:
+          - selector:
+              matchLabels:
+                addon: ingress-nginx
+                env: prod
+            sources:
+            - repoURL: ${{ vars.gitRepo }}
+              desiredRevision: ${{ outputs['wait-for-pr'].commit }}

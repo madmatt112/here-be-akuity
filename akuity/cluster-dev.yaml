@@ -1,0 +1,10 @@
+apiVersion: argocd.akuity.io/v1alpha1
+kind: Cluster
+metadata:
+  name: dev
+  labels:
+    env: dev
+spec:
+  description: "Dev EKS cluster"
+  data:
+    size: small

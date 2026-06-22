@@ -1,0 +1,10 @@
+# Prod cluster overrides.
+ingress-nginx:
+  controller:
+    replicaCount: 3
+    metrics:
+      enabled: true
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi

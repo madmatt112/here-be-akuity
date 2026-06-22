@@ -1,0 +1,9 @@
+# Base values shared by every cluster. Subchart values are keyed by the
+# dependency name (ingress-nginx).
+ingress-nginx:
+  controller:
+    replicaCount: 1
+    service:
+      type: LoadBalancer
+    admissionWebhooks:
+      enabled: true
