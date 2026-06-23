@@ -22,7 +22,7 @@ spec:
       - name: env
         value: dev
       - name: targetBranch
-        value: env/dev
+        value: appenv/dev
       steps:
       - uses: git-clone
         config:
@@ -90,7 +90,7 @@ spec:
       - name: env
         value: prod
       - name: targetBranch
-        value: env/prod
+        value: appenv/prod
       steps:
       - uses: git-clone
         config:

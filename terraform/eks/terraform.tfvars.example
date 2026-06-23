@@ -2,10 +2,10 @@
 # (profile/role) for the target account; no secrets live here.
 
 # Optional overrides (defaults shown):
-# kubernetes_version = "1.30"
+# kubernetes_version = "1.35"
 # node_instance_type = "t3.medium"
 
-# eks_clusters defaults to four clusters (dev+prod in us-west-1 and us-east-1).
+# eks_clusters defaults to three clusters (dev+prod in us-west-1, dev in us-east-1).
 # Override the whole map here if you want a different set, e.g.:
 # eks_clusters = {
 #   "eks-us-west-1-dev"  = { vpc_cidr = "10.0.0.0/16", region = "us-west-1", env = "dev" }

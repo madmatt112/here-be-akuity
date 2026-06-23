@@ -22,7 +22,7 @@ spec:
       - name: cluster
         value: eks-us-west-1-dev
       - name: targetBranch
-        value: addons/eks-us-west-1-dev
+        value: cluster/eks-us-west-1-dev
       steps:
       - uses: git-clone
         config:
@@ -101,7 +101,7 @@ spec:
       - name: cluster
         value: eks-us-east-1-dev
       - name: targetBranch
-        value: addons/eks-us-east-1-dev
+        value: cluster/eks-us-east-1-dev
       steps:
       - uses: git-clone
         config:
@@ -183,7 +183,7 @@ spec:
       - name: cluster
         value: eks-us-west-1-prod
       - name: targetBranch
-        value: addons/eks-us-west-1-prod
+        value: cluster/eks-us-west-1-prod
       steps:
       - uses: git-clone
         config:

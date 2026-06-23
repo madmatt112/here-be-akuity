@@ -3,10 +3,10 @@
 #
 #   Warehouse (guestbook image)
 #      |
-#     [dev]   renders env/dev once -> pushes env/dev -> syncs ALL dev clusters
+#     [dev]   renders appenv/dev once -> pushes appenv/dev -> syncs ALL dev clusters
 #      |      (promotion succeeds only when every dev cluster is Synced/Healthy)
 #      v
-#     [prod]  renders env/prod once -> pushes env/prod -> syncs ALL prod clusters
+#     [prod]  renders appenv/prod once -> pushes appenv/prod -> syncs ALL prod clusters
 #
 # Contrast with platform-addons, where a stage IS a single cluster and the
 # operator promotes cluster-by-cluster. Here a stage is an ENVIRONMENT: one
@@ -38,7 +38,7 @@ spec:
       - name: env
         value: dev
       - name: targetBranch
-        value: env/dev
+        value: appenv/dev
       steps:
       - uses: git-clone
         config:
@@ -112,7 +112,7 @@ spec:
       - name: env
         value: prod
       - name: targetBranch
-        value: env/prod
+        value: appenv/prod
       steps:
       - uses: git-clone
         config:

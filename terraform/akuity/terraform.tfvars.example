@@ -9,7 +9,7 @@ github_user     = "madmatt112"
 # kargo_version        = "v1.10.7"
 
 # eks_clusters must list the clusters to register; keys must match the AWS EKS
-# cluster names (the eks/ root's keys). Defaults to the same four clusters.
+# cluster names (the eks/ root's keys). Defaults to the same three clusters.
 
 # Secrets: supply via environment, never commit them.
 #   export AKUITY_API_KEY_ID=...

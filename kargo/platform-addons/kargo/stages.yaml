@@ -12,7 +12,7 @@
 # explicitly, and the prod cluster sources from the dev cluster stages so it only
 # sees Freight that has cleared dev. Prod is PR-gated: its stage opens a PR into
 # the cluster branch and waits for merge before the sync. Each stage renders to its
-# own addons/<cluster> branch and updates only its cluster's Application (selected
+# own cluster/<cluster-name> branch and updates only its cluster's Application (selected
 # by the `cluster` label the ApplicationSet stamps).
 ---
 apiVersion: kargo.akuity.io/v1alpha1
@@ -39,7 +39,7 @@ spec:
       - name: cluster
         value: eks-us-west-1-dev
       - name: targetBranch
-        value: addons/eks-us-west-1-dev
+        value: cluster/eks-us-west-1-dev
       steps:
       - uses: git-clone
         config:
@@ -118,7 +118,7 @@ spec:
       - name: cluster
         value: eks-us-east-1-dev
       - name: targetBranch
-        value: addons/eks-us-east-1-dev
+        value: cluster/eks-us-east-1-dev
       steps:
       - uses: git-clone
         config:
@@ -200,7 +200,7 @@ spec:
       - name: cluster
         value: eks-us-west-1-prod
       - name: targetBranch
-        value: addons/eks-us-west-1-prod
+        value: cluster/eks-us-west-1-prod
       steps:
       - uses: git-clone
         config:

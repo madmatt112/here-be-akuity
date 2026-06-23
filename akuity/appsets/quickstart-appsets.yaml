@@ -30,7 +30,7 @@ spec:
         repoURL: https://github.com/madmatt112/here-be-akuity
         # All clusters in a tier track the same rendered branch; the Stage renders
         # once and syncs them together.
-        targetRevision: 'env/{{metadata.labels.env}}'
+        targetRevision: 'appenv/{{metadata.labels.env}}'
         path: .
       destination:
         name: '{{name}}'

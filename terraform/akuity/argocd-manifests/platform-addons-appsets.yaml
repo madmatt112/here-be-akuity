@@ -30,8 +30,8 @@ spec:
       project: default
       source:
         repoURL: https://github.com/madmatt112/here-be-akuity
-        # Each cluster tracks its own rendered branch (addons/<cluster-name>).
-        targetRevision: 'addons/{{name}}'
+        # Each cluster tracks its own rendered branch (cluster/<cluster-name>).
+        targetRevision: 'cluster/{{name}}'
         path: .
       destination:
         name: '{{name}}'

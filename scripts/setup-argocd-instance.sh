@@ -5,8 +5,8 @@ set -e  # Exit on non-zero exit code from commands
 
 INSTANCE=my-argocd-instance
 
-# The platform's four EKS clusters. The Akuity cluster name matches the AWS EKS
-# cluster name (as created by infra/terraform), and the region is derived from the
+# The platform's three EKS clusters. The Akuity cluster name matches the AWS EKS
+# cluster name (as created by terraform/eks), and the region is derived from the
 # name (eks-<region>-<env>). If your AWS cluster names differ, adjust here.
 CLUSTERS=(
   eks-us-west-1-dev
