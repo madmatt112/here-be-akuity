@@ -21,6 +21,10 @@ esac
 
 aws_() { aws --region "$REGION" --output json "$@"; }
 
+# Emit a multi-line terraform import block (single-line form with two args is
+# invalid HCL).
+imp() { printf 'import {\n  to = %s\n  id = "%s"\n}\n' "$1" "$2"; }
+
 CLUSTER=$(aws_ eks describe-cluster --name "$AWS_NAME")
 VPC_ID=$(jq -r '.cluster.resourcesVpcConfig.vpcId' <<<"$CLUSTER")
 CLUSTER_ROLE=$(jq -r '.cluster.roleArn | split("/") | last' <<<"$CLUSTER")
@@ -50,24 +54,25 @@ cat <<EOF
 }
 
 # --- import blocks -- put in terraform/eks/imports.tf, then \`terraform plan\` ---
-import { to = $MOD.aws_eks_cluster.this,    id = "$AWS_NAME" }
-import { to = $MOD.aws_eks_node_group.this, id = "$AWS_NAME:$NG_NAME" }
-import { to = $MOD.aws_iam_role.cluster,     id = "$CLUSTER_ROLE" }
-import { to = $MOD.aws_iam_role.node,        id = "$NODE_ROLE" }
-import { to = $MOD.aws_iam_role_policy_attachment.cluster, id = "$CLUSTER_ROLE/arn:aws:iam::aws:policy/AmazonEKSClusterPolicy" }
-import { to = $MOD.aws_iam_role_policy_attachment.node["arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"],          id = "$NODE_ROLE/arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy" }
-import { to = $MOD.aws_iam_role_policy_attachment.node["arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"],               id = "$NODE_ROLE/arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy" }
-import { to = $MOD.aws_iam_role_policy_attachment.node["arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"], id = "$NODE_ROLE/arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly" }
-import { to = $MOD.aws_vpc.this,             id = "$VPC_ID" }
-import { to = $MOD.aws_internet_gateway.this, id = "$IGW_ID" }
-import { to = $MOD.aws_route_table.public,   id = "$RTB_ID" }
-import { to = $MOD.aws_route.default,        id = "${RTB_ID}_0.0.0.0/0" }
 EOF
+
+imp "$MOD.aws_eks_cluster.this"    "$AWS_NAME"
+imp "$MOD.aws_eks_node_group.this" "$AWS_NAME:$NG_NAME"
+imp "$MOD.aws_iam_role.cluster"    "$CLUSTER_ROLE"
+imp "$MOD.aws_iam_role.node"       "$NODE_ROLE"
+imp "$MOD.aws_iam_role_policy_attachment.cluster" "$CLUSTER_ROLE/arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+imp "$MOD.aws_iam_role_policy_attachment.node[\"arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy\"]"          "$NODE_ROLE/arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+imp "$MOD.aws_iam_role_policy_attachment.node[\"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy\"]"               "$NODE_ROLE/arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+imp "$MOD.aws_iam_role_policy_attachment.node[\"arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly\"]" "$NODE_ROLE/arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+imp "$MOD.aws_vpc.this"             "$VPC_ID"
+imp "$MOD.aws_internet_gateway.this" "$IGW_ID"
+imp "$MOD.aws_route_table.public"   "$RTB_ID"
+imp "$MOD.aws_route.default"        "${RTB_ID}_0.0.0.0/0"
 
 i=0
 for s in "${SUBNETS[@]}"; do
-  printf 'import { to = %s.aws_subnet.public[%d],                id = "%s" }\n' "$MOD" "$i" "$s"
-  printf 'import { to = %s.aws_route_table_association.public[%d], id = "%s/%s" }\n' "$MOD" "$i" "$s" "$RTB_ID"
+  imp "$MOD.aws_subnet.public[$i]"                "$s"
+  imp "$MOD.aws_route_table_association.public[$i]" "$s/$RTB_ID"
   i=$((i + 1))
 done
 
