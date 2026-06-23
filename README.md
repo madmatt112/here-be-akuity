@@ -276,11 +276,12 @@ quickstart: a concept-to-product-to-doc-site table, and a line explaining why yo
 will be reading three sites.
 
 **Give-back.** These findings became two contributions drafted alongside the build: a
-pull request to `akuity/kargo-quickstart-template` (bump Argo CD off `v2.10.9`,
-remove a dead script, harden the setup script's instance lookup, and expand the
-README), and a docs-feedback writeup for the quickstart tutorial (Argo-first
-ordering, refreshed screenshots and version references, and the orientation box
-above).
+[pull request](https://github.com/akuity/kargo-quickstart-template/pull/12) to
+`akuity/kargo-quickstart-template` (bump Argo CD off `v2.10.9`, remove a dead script,
+harden the setup script's instance lookup, and expand the README), and a
+[docs-feedback writeup](contrib/docs-feedback.md) for the quickstart tutorial
+(Argo-first ordering, refreshed screenshots and version references, and the
+orientation box above).
 
 ## Bonus items explored
 
