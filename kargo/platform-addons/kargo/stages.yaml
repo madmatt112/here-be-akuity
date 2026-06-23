@@ -1,60 +1,19 @@
-# Gated fan-out for the ingress-nginx add-on.
+# Platform add-on (ingress-nginx): cluster-centric promotion across the fleet.
 #
-#   Warehouse (ingress-nginx)
-#      |
-#     [dev]  <- pure gate: freight enters the dev tier (no deploy)
-#      |  +-- eks-us-west-1-dev   (renders + argocd-update -> this cluster)
-#      |  +-- eks-us-east-1-dev   (renders + argocd-update -> this cluster)
-#      |
-#     [prod] <- pure gate: sources from [dev]; freight enters the prod tier
-#         +-- eks-us-west-1-prod  (PR-gated render + argocd-update -> this cluster)
+#   Warehouse (ingress-nginx chart)
+#      |  (operator promotes each dev cluster directly, canary by region)
+#      +-- eks-us-west-1-dev   (renders + argocd-update -> this cluster)
+#      +-- eks-us-east-1-dev   (renders + argocd-update -> this cluster)
+#               |
+#               v  (prod sources from the dev stages: only Freight that cleared dev)
+#          eks-us-west-1-prod  (PR-gated render + argocd-update -> this cluster)
 #
-# The dev/prod gates are control-flow stages with no promotion steps; promoting
-# freight into them is a no-op that only marks the tier as reached, making that
-# freight eligible for the per-cluster deploy stages that source from the gate.
-# Each deploy stage renders to its own addons/<cluster> branch and updates only
-# its cluster's Application (selected by the `cluster` label the ApplicationSet
-# stamps). Prod-tier deploys are PR-gated into their branch.
----
-apiVersion: kargo.akuity.io/v1alpha1
-kind: Stage
-metadata:
-  name: dev
-  namespace: platform-addons
-  annotations:
-    kargo.akuity.io/color: blue
-spec:
-  requestedFreight:
-  - origin:
-      kind: Warehouse
-      name: ingress-nginx
-    sources:
-      direct: true
-  # Pure gate: no steps. Promotion just records that freight reached the dev tier.
-  promotionTemplate:
-    spec:
-      steps: []
----
-apiVersion: kargo.akuity.io/v1alpha1
-kind: Stage
-metadata:
-  name: prod
-  namespace: platform-addons
-  annotations:
-    kargo.akuity.io/color: indigo
-spec:
-  requestedFreight:
-  - origin:
-      kind: Warehouse
-      name: ingress-nginx
-    sources:
-      # Freight must clear the dev gate before it is eligible for the prod tier.
-      stages:
-      - dev
-  # Pure gate: no steps. Promotion just records that freight reached the prod tier.
-  promotionTemplate:
-    spec:
-      steps: []
+# A stage is a single cluster. The operator promotes Freight to each dev cluster
+# explicitly, and the prod cluster sources from the dev cluster stages so it only
+# sees Freight that has cleared dev. Prod is PR-gated: its stage opens a PR into
+# the cluster branch and waits for merge before the sync. Each stage renders to its
+# own addons/<cluster> branch and updates only its cluster's Application (selected
+# by the `cluster` label the ApplicationSet stamps).
 ---
 apiVersion: kargo.akuity.io/v1alpha1
 kind: Stage
@@ -69,8 +28,7 @@ spec:
       kind: Warehouse
       name: ingress-nginx
     sources:
-      stages:
-      - dev
+      direct: true
   promotionTemplate:
     spec:
       vars:
@@ -149,8 +107,7 @@ spec:
       kind: Warehouse
       name: ingress-nginx
     sources:
-      stages:
-      - dev
+      direct: true
   promotionTemplate:
     spec:
       vars:
@@ -229,8 +186,10 @@ spec:
       kind: Warehouse
       name: ingress-nginx
     sources:
+      # Prod draws Freight that has cleared the dev tier (either dev cluster).
       stages:
-      - prod
+      - eks-us-west-1-dev
+      - eks-us-east-1-dev
   promotionTemplate:
     spec:
       vars:

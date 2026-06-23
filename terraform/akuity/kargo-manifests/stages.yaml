@@ -1,46 +1,6 @@
 apiVersion: kargo.akuity.io/v1alpha1
 kind: Stage
 metadata:
-  name: dev
-  namespace: platform-addons
-  annotations:
-    kargo.akuity.io/color: blue
-spec:
-  requestedFreight:
-  - origin:
-      kind: Warehouse
-      name: ingress-nginx
-    sources:
-      direct: true
-  # Pure gate: no steps. Promotion just records that freight reached the dev tier.
-  promotionTemplate:
-    spec:
-      steps: []
----
-apiVersion: kargo.akuity.io/v1alpha1
-kind: Stage
-metadata:
-  name: prod
-  namespace: platform-addons
-  annotations:
-    kargo.akuity.io/color: indigo
-spec:
-  requestedFreight:
-  - origin:
-      kind: Warehouse
-      name: ingress-nginx
-    sources:
-      # Freight must clear the dev gate before it is eligible for the prod tier.
-      stages:
-      - dev
-  # Pure gate: no steps. Promotion just records that freight reached the prod tier.
-  promotionTemplate:
-    spec:
-      steps: []
----
-apiVersion: kargo.akuity.io/v1alpha1
-kind: Stage
-metadata:
   name: eks-us-west-1-dev
   namespace: platform-addons
   annotations:
@@ -51,8 +11,7 @@ spec:
       kind: Warehouse
       name: ingress-nginx
     sources:
-      stages:
-      - dev
+      direct: true
   promotionTemplate:
     spec:
       vars:
@@ -131,8 +90,7 @@ spec:
       kind: Warehouse
       name: ingress-nginx
     sources:
-      stages:
-      - dev
+      direct: true
   promotionTemplate:
     spec:
       vars:
@@ -211,8 +169,10 @@ spec:
       kind: Warehouse
       name: ingress-nginx
     sources:
+      # Prod draws Freight that has cleared the dev tier (either dev cluster).
       stages:
-      - prod
+      - eks-us-west-1-dev
+      - eks-us-east-1-dev
   promotionTemplate:
     spec:
       vars:
@@ -263,7 +223,6 @@ spec:
         config:
           path: ./out
           message: ${{ outputs['update-chart'].commitMessage }}
-      # PR-gate prod: push to a generated branch, open a PR into the cluster branch.
       - uses: git-push
         as: push
         config:
