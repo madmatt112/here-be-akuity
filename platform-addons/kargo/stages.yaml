@@ -3,6 +3,8 @@ kind: Stage
 metadata:
   name: dev
   namespace: platform-addons
+  annotations:
+    kargo.akuity.io/color: red
 spec:
   requestedFreight:
   - origin:
@@ -44,6 +46,7 @@ spec:
         config:
           path: ./src/addons/ingress-nginx
           releaseName: ingress-nginx
+          namespace: ingress-nginx 
           valuesFiles:
           - ./src/addons/ingress-nginx/values.yaml
           - ./src/addons/ingress-nginx/dev-values.yaml
@@ -78,6 +81,8 @@ kind: Stage
 metadata:
   name: prod
   namespace: platform-addons
+  annotations:
+    kargo.akuity.io/color: green  
 spec:
   requestedFreight:
   - origin:
@@ -119,6 +124,7 @@ spec:
         config:
           path: ./src/addons/ingress-nginx
           releaseName: ingress-nginx
+          namespace: ingress-nginx
           valuesFiles:
           - ./src/addons/ingress-nginx/values.yaml
           - ./src/addons/ingress-nginx/prod-values.yaml

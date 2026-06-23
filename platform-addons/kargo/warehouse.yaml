@@ -9,4 +9,4 @@ spec:
       # Classic (HTTP) Helm repo: repoURL + chart name.
       repoURL: https://kubernetes.github.io/ingress-nginx
       name: ingress-nginx
-      semverConstraint: ^4.11.0
+      semverConstraint: ^4.14.0
