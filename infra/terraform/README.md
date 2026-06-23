@@ -28,8 +28,9 @@ Managed here:
 
 **Not** Terraform-manageable (by design — GitOps/runtime/artifacts):
 
-- The Git branch **contents**: the per-cluster `addons/<cluster>` rendered-manifest
-  branches and the umbrella chart on `main`. Kargo writes the rendered branches at
+- The Git branch **contents**: the rendered-manifest branches (`addons/<cluster>` for
+  the add-on, `env/<tier>` for guestbook) and the umbrella chart on `main`. Kargo
+  writes the rendered branches at
   promotion time; the chart is source that the Stages clone. Terraform owns the
   Stage/AppSet *definitions*, not the bytes they produce or consume.
 - **Freight** — discovered at runtime by the Warehouse; not declarative.
@@ -48,12 +49,10 @@ instance:
   `dev` and `prod` control-flow gates, then a per-cluster deploy Stage for each
   cluster that renders to its own `addons/<cluster>` branch (prod-tier Stages are
   PR-gated).
-- **quickstart** — guestbook (`guestbook` ApplicationSet; Kargo Project `kargo-simple`,
-  Warehouse `guestbook`, dev/staging/prod Stages).
-
-Because k3d (the original quickstart cluster) isn't Terraform-managed, the guestbook
-ApplicationSet now lands on the EKS clusters via its matrix generator
-(clusters x [dev,staging,prod]).
+- **quickstart** — guestbook (`guestbook` ApplicationSet, one Application per cluster;
+  Kargo Project `kargo-simple`, Warehouse `guestbook`). Two env Stages, `dev` and `prod`:
+  each renders once and fans out to every cluster in its tier, abstracting the cluster
+  count from the developer -- the inverse of platform-addons' per-cluster control.
 
 ## Layout
 

@@ -1,8 +1,0 @@
-apiVersion: argocd.akuity.io/v1alpha1
-kind: Cluster
-metadata:
-  name: kargo-quickstart
-spec:
-  description: "Kargo Quickstart K8S Cluster"
-  data:
-    size: small

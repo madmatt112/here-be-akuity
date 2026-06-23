@@ -4,34 +4,40 @@ metadata:
   name: guestbook
   namespace: argocd
 spec:
+  goTemplate: false
   generators:
-    - matrix:
-        generators:
-          - clusters:
-              selector:
-                matchExpressions:
-                - {key: akuity.io/argo-cd-cluster-name, operator: NotIn, values: [in-cluster]}
-          - list:
-              elements:
-              - env: dev
-              - env: staging
-              - env: prod
+  - clusters:
+      selector:
+        matchExpressions:
+        # Never target the Akuity-hosted control-plane cluster.
+        - {key: akuity.io/argo-cd-cluster-name, operator: NotIn, values: [in-cluster]}
+        # Only clusters that declare an env (dev/prod) run guestbook.
+        - {key: env, operator: In, values: [dev, prod]}
   template:
     metadata:
-      name: 'guestbook-simple-{{env}}'
+      # One Application per cluster, e.g. guestbook-eks-us-west-1-dev.
+      name: 'guestbook-{{name}}'
+      labels:
+        app: guestbook
+        # The env Stage's argocd-update fans out to every app with this tier label.
+        env: '{{metadata.labels.env}}'
       annotations:
-        kargo.akuity.io/authorized-stage: kargo-simple:{{env}}
+        # Authorize the tier's Stage (dev or prod) to update this Application.
+        kargo.akuity.io/authorized-stage: 'kargo-simple:{{metadata.labels.env}}'
     spec:
       project: default
       source:
         repoURL: https://github.com/madmatt112/here-be-akuity
-        targetRevision: env/{{env}}
+        # All clusters in a tier track the same rendered branch; the Stage renders
+        # once and syncs them together.
+        targetRevision: 'env/{{metadata.labels.env}}'
         path: .
       destination:
         name: '{{name}}'
-        namespace: 'guestbook-simple-{{env}}'
+        namespace: 'guestbook-simple-{{metadata.labels.env}}'
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
-        syncOpti
+        syncOptions:
+        - CreateNamespace=true
