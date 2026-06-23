@@ -2,7 +2,7 @@
 # Source: ingress-nginx-addon/charts/ingress-nginx/templates/controller-poddisruptionbudget.yaml
 # PDB is not supported for DaemonSets.
 # https://github.com/kubernetes/kubernetes/issues/108124
-apiVersion: policy/v1beta1
+apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   labels:
@@ -346,6 +346,9 @@ metadata:
   namespace: ingress-nginx
 spec:
   type: LoadBalancer
+  ipFamilyPolicy: SingleStack
+  ipFamilies: 
+    - IPv4
   ports:
     - name: http
       port: 80
