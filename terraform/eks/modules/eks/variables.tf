@@ -33,25 +33,3 @@ variable "node_max_size" {
   type    = number
   default = 3
 }
-
-# Optional name overrides, for importing an existing (e.g. CloudFormation-built)
-# cluster whose resource names differ from the defaults. These attributes are
-# ForceNew, so they must match the live resource or Terraform would replace it.
-# Leave null for greenfield clusters to use the default naming.
-variable "cluster_role_name" {
-  type        = string
-  default     = null
-  description = "EKS cluster IAM role name. Defaults to eks-<cluster_name>-cluster."
-}
-
-variable "node_role_name" {
-  type        = string
-  default     = null
-  description = "Node group IAM role name. Defaults to eks-<cluster_name>-node."
-}
-
-variable "node_group_name" {
-  type        = string
-  default     = null
-  description = "Managed node group name. Defaults to <cluster_name>-ng."
-}

@@ -10,14 +10,10 @@ module "eks_usw1" {
     aws = aws.usw1
   }
 
-  cluster_name       = coalesce(each.value.aws_name, each.key)
+  cluster_name       = each.key
   vpc_cidr           = each.value.vpc_cidr
   kubernetes_version = var.kubernetes_version
   node_instance_type = var.node_instance_type
-
-  cluster_role_name = each.value.cluster_role_name
-  node_role_name    = each.value.node_role_name
-  node_group_name   = each.value.node_group_name
 }
 
 module "eks_use1" {
@@ -28,12 +24,8 @@ module "eks_use1" {
     aws = aws.use1
   }
 
-  cluster_name       = coalesce(each.value.aws_name, each.key)
+  cluster_name       = each.key
   vpc_cidr           = each.value.vpc_cidr
   kubernetes_version = var.kubernetes_version
   node_instance_type = var.node_instance_type
-
-  cluster_role_name = each.value.cluster_role_name
-  node_role_name    = each.value.node_role_name
-  node_group_name   = each.value.node_group_name
 }
