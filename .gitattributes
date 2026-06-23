@@ -1,0 +1,8 @@
+# Normalize line endings: store everything as LF in the repo, regardless of each
+# contributor's core.autocrlf setting. Keeps the repo deterministic across
+# Windows/macOS/Linux clones and silences "LF will be replaced by CRLF" warnings.
+* text=auto eol=lf
+
+# Shell scripts must stay LF or they break when run on Linux (e.g. the agent and
+# devcontainer scripts).
+*.sh text eol=lf

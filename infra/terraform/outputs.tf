@@ -1,6 +1,6 @@
 output "eks_clusters" {
   description = "EKS cluster endpoints by name."
-  value       = { for k, m in module.eks : k => m.cluster_endpoint }
+  value       = { for k, m in merge(module.eks_usw1, module.eks_use1) : k => m.cluster_endpoint }
 }
 
 output "argocd_instance_id" {

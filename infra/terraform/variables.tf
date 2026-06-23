@@ -1,9 +1,3 @@
-variable "aws_region" {
-  type        = string
-  description = "AWS region for the EKS clusters."
-  default     = "us-west-1"
-}
-
 variable "akuity_org_name" {
   type        = string
   description = "Akuity Platform organization name."
@@ -48,11 +42,21 @@ variable "node_instance_type" {
 variable "eks_clusters" {
   type = map(object({
     vpc_cidr = string
+    region   = string
+    env      = string
   }))
-  description = "EKS clusters to create. The map key becomes the cluster name and the Akuity env label."
+  description = <<-EOT
+    EKS clusters to create, keyed by cluster name. `region` selects which AWS
+    provider builds the cluster (us-west-1 -> aws.usw1, us-east-1 -> aws.use1).
+    `env` is the Akuity routing label (dev/prod) the platform-addons ApplicationSet
+    selects on; the per-cluster branch, Application, and Kargo deploy stage are all
+    keyed off the cluster name (the map key) itself.
+  EOT
   default = {
-    dev  = { vpc_cidr = "10.0.0.0/16" }
-    prod = { vpc_cidr = "10.1.0.0/16" }
+    "eks-us-west-1-dev"  = { vpc_cidr = "10.0.0.0/16", region = "us-west-1", env = "dev" }
+    "eks-us-west-1-prod" = { vpc_cidr = "10.1.0.0/16", region = "us-west-1", env = "prod" }
+    "eks-us-east-1-dev"  = { vpc_cidr = "10.2.0.0/16", region = "us-east-1", env = "dev" }
+    "eks-us-east-1-prod" = { vpc_cidr = "10.3.0.0/16", region = "us-east-1", env = "prod" }
   }
 }
 

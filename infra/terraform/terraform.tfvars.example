@@ -3,7 +3,6 @@ akuity_org_name = "your-akuity-org"
 github_user     = "madmatt112"
 
 # Optional overrides (defaults shown):
-# aws_region           = "us-west-1"
 # argocd_instance_name = "my-argocd-instance"
 # argocd_version       = "v3.4.3"
 # kargo_instance_name  = "platform-kargo"

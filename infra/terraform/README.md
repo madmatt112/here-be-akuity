@@ -1,9 +1,10 @@
 # Terraform: platform environment
 
-Greenfield-creates the **platform** environment from the take-home: two EKS
-clusters (dev, prod), the Akuity-hosted Argo CD and Kargo instances, the cluster
-registrations + agents, the `platform-addons` ingress-nginx ApplicationSet, and
-the `platform-addons` Kargo pipeline (Project / Warehouse / Stages).
+Greenfield-creates the **platform** environment from the take-home: four EKS
+clusters (dev + prod in both us-west-1 and us-east-1), the Akuity-hosted Argo CD
+and Kargo instances, the cluster registrations + agents, the `platform-addons`
+ingress-nginx ApplicationSet, and the `platform-addons` Kargo pipeline (Project /
+Warehouse / gated fan-out Stages).
 
 Providers: `hashicorp/aws` and `akuity/akp`.
 
@@ -16,7 +17,7 @@ Managed here:
 
 | Resource | How |
 | --- | --- |
-| EKS dev + prod (VPC, subnets, IAM, cluster, node group) | `module.eks` (aws) |
+| EKS dev+prod in us-west-1 & us-east-1 (VPC, subnets, IAM, cluster, node group) | `module.eks_usw1` / `module.eks_use1` (aws, one per region) |
 | Argo CD instance + `argocd-cm` | `akp_instance` |
 | Argo CD cluster registration + agent install | `akp_cluster` (kube_config.exec `aws eks get-token`) |
 | Add-on `ApplicationSet` | `akp_instance.argocd_resources` (from `argocd-manifests/`) |
@@ -27,7 +28,7 @@ Managed here:
 
 **Not** Terraform-manageable (by design — GitOps/runtime/artifacts):
 
-- The Git branch **contents**: the `addons/dev` / `addons/prod` rendered-manifest
+- The Git branch **contents**: the per-cluster `addons/<cluster>` rendered-manifest
   branches and the umbrella chart on `main`. Kargo writes the rendered branches at
   promotion time; the chart is source that the Stages clone. Terraform owns the
   Stage/AppSet *definitions*, not the bytes they produce or consume.
@@ -41,22 +42,26 @@ Managed here:
 Both environments are managed, sharing the one Argo CD instance and one Kargo
 instance:
 
-- **platform-addons** — ingress-nginx add-on across dev+prod EKS (`addon-ingress-nginx`
-  ApplicationSet; Kargo Project `platform-addons`, Warehouse `ingress-nginx`, dev/prod Stages).
+- **platform-addons** — ingress-nginx add-on fanned out across the four EKS clusters
+  (`addon-ingress-nginx` ApplicationSet, one Application per cluster; Kargo Project
+  `platform-addons`, Warehouse `ingress-nginx`). The Stages form a gated fan-out:
+  `dev` and `prod` control-flow gates, then a per-cluster deploy Stage for each
+  cluster that renders to its own `addons/<cluster>` branch (prod-tier Stages are
+  PR-gated).
 - **quickstart** — guestbook (`guestbook` ApplicationSet; Kargo Project `kargo-simple`,
   Warehouse `guestbook`, dev/staging/prod Stages).
 
 Because k3d (the original quickstart cluster) isn't Terraform-managed, the guestbook
-ApplicationSet now lands on the dev+prod EKS clusters: its matrix generator
-(clusters x [dev,staging,prod]) produces guestbook in three namespaces on each cluster.
+ApplicationSet now lands on the EKS clusters via its matrix generator
+(clusters x [dev,staging,prod]).
 
 ## Layout
 
 ```
 terraform/
   versions.tf / providers.tf / variables.tf / locals.tf / outputs.tf
-  eks.tf                         # module.eks for_each dev/prod
-  akuity_argocd.tf               # akp_instance + akp_cluster (dev, prod)
+  eks.tf                         # module.eks_usw1 / module.eks_use1 (per-region for_each)
+  akuity_argocd.tf               # akp_instance + akp_cluster (4 clusters, both regions)
   akuity_kargo.tf                # akp_kargo_instance + akp_kargo_agent
   modules/eks/                   # VPC + subnets + IAM + cluster + node group
   argocd-manifests/              # ApplicationSet(s) -> argocd_resources
@@ -85,7 +90,8 @@ terraform apply
 
 Dependency order is handled by references: EKS clusters come up first, then
 `akp_cluster` connects via `aws eks get-token` and installs the agent, then the
-ApplicationSet routes each cluster (by its `env` label) to its rendered branch.
+ApplicationSet gives each cluster its own Application (keyed by cluster name)
+tracking its `addons/<cluster>` branch.
 
 ## Importing existing resources
 
@@ -95,16 +101,19 @@ To adopt what you already built instead of recreating it, use `import` blocks
 ```hcl
 import { to = akp_instance.argocd,                 id = "my-argocd-instance" }
 import { to = akp_kargo_instance.kargo,            id = "platform-kargo" }
-import { to = akp_cluster.eks["dev"],              id = "<argocd-instance-id>/dev" }
-import { to = akp_cluster.eks["prod"],             id = "<argocd-instance-id>/prod" }
+import { to = akp_cluster.eks["eks-us-west-1-dev"],  id = "<argocd-instance-id>/eks-us-west-1-dev" }
+import { to = akp_cluster.eks["eks-us-west-1-prod"], id = "<argocd-instance-id>/eks-us-west-1-prod" }
+import { to = akp_cluster.eks["eks-us-east-1-dev"],  id = "<argocd-instance-id>/eks-us-east-1-dev" }
+import { to = akp_cluster.eks["eks-us-east-1-prod"], id = "<argocd-instance-id>/eks-us-east-1-prod" }
 import { to = akp_kargo_agent.agent,               id = "platform-kargo-agent" }
 ```
 
 EKS resources import by AWS id under the module address, e.g.:
 
 ```bash
-terraform import 'module.eks["dev"].aws_eks_cluster.this' dev
-terraform import 'module.eks["dev"].aws_vpc.this' vpc-xxxxxxxx
+terraform import 'module.eks_usw1["eks-us-west-1-dev"].aws_eks_cluster.this' eks-us-west-1-dev
+terraform import 'module.eks_usw1["eks-us-west-1-dev"].aws_vpc.this' vpc-xxxxxxxx
+# us-east-1 clusters live under module.eks_use1["eks-us-east-1-<env>"]
 # ...repeat per resource; `terraform plan` will show what's still unmanaged
 ```
 

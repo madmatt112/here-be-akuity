@@ -24,19 +24,20 @@ resource "akp_instance" "argocd" {
   argocd_resources = local.argocd_resources
 }
 
-# Register each EKS cluster with the Argo CD instance and install the agent.
-# kube_config.exec uses `aws eks get-token`, so no static kubeconfig/token.
+# Register each EKS cluster (both regions) with the Argo CD instance and install
+# the agent. kube_config.exec uses `aws eks get-token`, so no static kubeconfig.
 resource "akp_cluster" "eks" {
-  for_each = module.eks
+  for_each = merge(module.eks_usw1, module.eks_use1)
 
   instance_id = akp_instance.argocd.id
   name        = each.key
   namespace   = "akuity"
 
-  # The env label is what the platform-addons ApplicationSet routes on
-  # (targetRevision addons/{{metadata.labels.env}}).
+  # env is the tier label the platform-addons ApplicationSet selector filters on;
+  # the appset keys the per-cluster branch/Application/Kargo stage off the cluster
+  # name itself (each.key).
   labels = {
-    env = each.key
+    env = var.eks_clusters[each.key].env
   }
 
   spec = {
@@ -52,7 +53,7 @@ resource "akp_cluster" "eks" {
     exec = {
       api_version = "client.authentication.k8s.io/v1"
       command     = "aws"
-      args        = ["eks", "get-token", "--cluster-name", each.key, "--region", var.aws_region]
+      args        = ["eks", "get-token", "--cluster-name", each.key, "--region", var.eks_clusters[each.key].region]
     }
   }
 
