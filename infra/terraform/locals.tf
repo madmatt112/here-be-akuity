@@ -50,3 +50,4 @@ locals {
   }
 
   kargo_resources = merge(local.kargo_resources_files, local.kargo_git_credentials)
+}
