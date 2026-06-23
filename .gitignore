@@ -2,16 +2,16 @@
 .log
 
 # Terraform
-**/.terraform/*          # provider plugins / module cache
-*.tfstate                # state can contain secrets — never commit
+**/.terraform/*
+*.tfstate 
 *.tfstate.*
 *.tfstate.backup
 .terraform.tfstate.lock.info
 crash.log
 crash.*.log
-*.tfvars                 # may hold sensitive values; tfvars.example stays tracked
+*.tfvars
 *.tfvars.json
-override.tf              # local-only overrides
+override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json

@@ -11,16 +11,16 @@ variable "eks_clusters" {
     akuity/ root) but kept here so a single tfvars can be shared between roots.
   EOT
   default = {
-    "eks-us-west-1-dev"  = { vpc_cidr = "10.0.0.0/16", region = "us-west-1", env = "dev" }
-    "eks-us-west-1-prod" = { vpc_cidr = "10.1.0.0/16", region = "us-west-1", env = "prod" }
-    "eks-us-east-1-dev"  = { vpc_cidr = "10.2.0.0/16", region = "us-east-1", env = "dev" }
+    "eks-us-west-1-dev"  = { vpc_cidr = "10.4.0.0/16", region = "us-west-1", env = "dev" }
+    "eks-us-west-1-prod" = { vpc_cidr = "10.5.0.0/16", region = "us-west-1", env = "prod" }
+    "eks-us-east-1-dev"  = { vpc_cidr = "10.6.0.0/16", region = "us-east-1", env = "dev" }
   }
 }
 
 variable "kubernetes_version" {
   type        = string
   description = "EKS Kubernetes version."
-  default     = "1.30"
+  default     = "1.35"
 }
 
 variable "node_instance_type" {
