@@ -7,11 +7,13 @@ github_user     = "madmatt112"
 # argocd_version       = "v3.4.3"
 # kargo_instance_name  = "platform-kargo"
 # kargo_version        = "v1.10.7"
-# kubernetes_version   = "1.30"
-# node_instance_type   = "t3.medium"
+
+# eks_clusters must list the clusters to register; keys must match the AWS EKS
+# cluster names (the eks/ root's keys). Defaults to the same four clusters.
 
 # Secrets: supply via environment, never commit them.
 #   export AKUITY_API_KEY_ID=...
 #   export AKUITY_API_KEY_SECRET=...
 #   export TF_VAR_github_pat=...                          # GitHub PAT: repo + write:packages
 #   export TF_VAR_kargo_admin_password_hash='$2a$10$...'  # bcrypt hash for Kargo admin
+# Plus AWS credentials (profile/role) for the aws_eks_cluster data lookups.

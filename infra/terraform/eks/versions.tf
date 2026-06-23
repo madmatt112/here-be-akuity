@@ -6,9 +6,5 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
-    akp = {
-      source  = "akuity/akp"
-      version = "~> 0.12"
-    }
   }
 }

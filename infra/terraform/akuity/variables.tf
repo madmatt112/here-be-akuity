@@ -27,18 +27,6 @@ variable "kargo_version" {
   default     = "v1.10.7"
 }
 
-variable "kubernetes_version" {
-  type        = string
-  description = "EKS Kubernetes version. Leave null to use the EKS default."
-  default     = "1.30"
-}
-
-variable "node_instance_type" {
-  type        = string
-  description = "EC2 instance type for the managed node groups."
-  default     = "t3.medium"
-}
-
 variable "eks_clusters" {
   type = map(object({
     vpc_cidr = string
@@ -46,11 +34,11 @@ variable "eks_clusters" {
     env      = string
   }))
   description = <<-EOT
-    EKS clusters to create, keyed by cluster name. `region` selects which AWS
-    provider builds the cluster (us-west-1 -> aws.usw1, us-east-1 -> aws.use1).
-    `env` is the Akuity routing label (dev/prod) the platform-addons ApplicationSet
-    selects on; the per-cluster branch, Application, and Kargo deploy stage are all
-    keyed off the cluster name (the map key) itself.
+    The EKS clusters to register with the Argo CD instance, keyed by cluster name
+    (must match the AWS EKS cluster names created by the eks/ root). `region`
+    selects which AWS provider looks the cluster up; `env` becomes the Akuity
+    routing label (dev/prod). `vpc_cidr` is unused here but kept so a single tfvars
+    can be shared with the eks/ root.
   EOT
   default = {
     "eks-us-west-1-dev"  = { vpc_cidr = "10.0.0.0/16", region = "us-west-1", env = "dev" }
