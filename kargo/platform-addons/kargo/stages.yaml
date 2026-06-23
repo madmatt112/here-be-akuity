@@ -1,7 +1,7 @@
 apiVersion: kargo.akuity.io/v1alpha1
 kind: Stage
 metadata:
-  name: dev
+  name: eks-us-west-1-dev
   namespace: platform-addons
   annotations:
     kargo.akuity.io/color: red
@@ -80,7 +80,7 @@ spec:
 apiVersion: kargo.akuity.io/v1alpha1
 kind: Stage
 metadata:
-  name: prod
+  name: eks-us-west-1-prod
   namespace: platform-addons
   annotations:
     kargo.akuity.io/color: green  
@@ -92,7 +92,7 @@ spec:
     sources:
       # Freight must clear dev before it is eligible for prod.
       stages:
-      - dev
+      - eks-us-west-1-dev
   promotionTemplate:
     spec:
       vars:

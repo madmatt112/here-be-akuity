@@ -1,0 +1,21 @@
+apiVersion: argocd.akuity.io/v1alpha1
+kind: Cluster
+metadata:
+  name: eks-us-west-1-dev
+  labels:
+    env: dev
+spec:
+  description: "Dev EKS cluster in us-west-1"
+  data:
+    size: small
+---
+apiVersion: argocd.akuity.io/v1alpha1
+kind: Cluster
+metadata:
+  name: eks-us-west-1-prod
+  labels:
+    env: prod
+spec:
+  description: "Prod EKS cluster in us-west-1"
+  data:
+    size: small
