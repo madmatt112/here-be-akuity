@@ -1,6 +1,6 @@
 # Dev cluster overrides.
 ingress-nginx:
   controller:
-    replicaCount: 1
+    replicaCount: 3
     metrics:
       enabled: false

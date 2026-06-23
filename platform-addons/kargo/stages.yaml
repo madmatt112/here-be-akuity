@@ -54,6 +54,7 @@ spec:
           buildDependencies: true
           includeCRDs: true
           outPath: ./out/manifests.yaml
+          kubeVersion: 1.30.0
       - uses: git-commit
         as: commit
         config:
@@ -132,6 +133,7 @@ spec:
           buildDependencies: true
           includeCRDs: true
           outPath: ./out/manifests.yaml
+          kubeVersion: 1.30.0
       - uses: git-commit
         as: commit
         config:
@@ -151,11 +153,10 @@ spec:
           targetBranch: addons/prod
       - uses: git-wait-for-pr
         as: wait-for-pr
+        if: ${{ status('open-pr') != 'Skipped' }}     # skip the wait if no PR was opened
         config:
           repoURL: ${{ vars.gitRepo }}
           prNumber: ${{ outputs['open-pr'].pr.id }}
-      # Use the POST-MERGE commit on addons/prod as the desired revision,
-      # not the pre-merge commit (avoids the argocd-update sync loop).
       - uses: argocd-update
         config:
           apps:
@@ -165,4 +166,4 @@ spec:
                 env: prod
             sources:
             - repoURL: ${{ vars.gitRepo }}
-              desiredRevision: ${{ outputs['wait-for-pr'].commit }}
+              desiredRevision: ${{ outputs['wait-for-pr']?.commit ?? outputs.commit.commit }}
