@@ -38,7 +38,7 @@ spec:
           charts:
           - repository: ${{ vars.addonChartRepo }}
             name: ingress-nginx
-            version: ${{ chartFrom(vars.addonChartRepo).Version }}
+            version: ${{ chartFrom(vars.addonChartRepo, "ingress-nginx").Version }}
       # Render the umbrella chart to a single plain-YAML file (RMP artifact).
       - uses: helm-template
         config:
@@ -114,7 +114,7 @@ spec:
           charts:
           - repository: ${{ vars.addonChartRepo }}
             name: ingress-nginx
-            version: ${{ chartFrom(vars.addonChartRepo).Version }}
+            version: ${{ chartFrom(vars.addonChartRepo, "ingress-nginx").Version }}
       - uses: helm-template
         config:
           path: ./src/addons/ingress-nginx

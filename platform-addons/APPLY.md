@@ -6,22 +6,16 @@ Contrast w/ the guestbook app: there a stage is a namespace on one cluster; here
 a stage IS a cluster (dev cluster, then prod cluster), so dev can run a newer
 add-on version than prod during a promotion window.
 
-## Repo-path mapping
+## Layout
 
-These files live in the vault for review. Copy them into the repo at:
+- `addons/ingress-nginx/` — umbrella Helm chart on `main`; Kargo renders this.
+- `platform-addons/kargo/` — Kargo Project, Warehouse & Stages (`kargo apply`).
+- `akuity/addon-ingress-nginx-appset.yaml` — the add-on ApplicationSet.
+- `akuity/cluster-dev.yaml`, `akuity/cluster-prod.yaml` — Cluster registrations w/ `env` labels.
+- `infra/eks/` — CloudFormation for the two EKS clusters.
 
-| This folder                                  | Repo path                                  | Applied by            |
-| -------------------------------------------- | ------------------------------------------ | --------------------- |
-| `addons/ingress-nginx/`                      | `addons/ingress-nginx/` (on `main`)        | rendered by Kargo      |
-| `kargo/project.yaml`                         | `platform-addons/kargo/project.yaml`       | `kargo apply`         |
-| `kargo/warehouse.yaml`                       | `platform-addons/kargo/warehouse.yaml`     | `kargo apply`         |
-| `kargo/stages.yaml`                          | `platform-addons/kargo/stages.yaml`        | `kargo apply`         |
-| `akuity/addon-ingress-nginx-appset.yaml`     | `akuity/addon-ingress-nginx-appset.yaml`   | `akuity argocd apply` |
-| `akuity/cluster-dev.yaml`                    | `akuity/cluster-dev.yaml`                  | `akuity argocd apply` |
-| `akuity/cluster-prod.yaml`                   | `akuity/cluster-prod.yaml`                 | `akuity argocd apply` |
-
-The chart must sit at `addons/ingress-nginx/` on `main` because the Stage steps
-render `./src/addons/ingress-nginx` (where `./src` is a checkout of `main`).
+The chart lives at `addons/ingress-nginx/` because the Stage steps render
+`./src/addons/ingress-nginx`, where `./src` is a checkout of `main`.
 
 ## How it works
 
@@ -31,20 +25,46 @@ render `./src/addons/ingress-nginx` (where `./src` is a checkout of `main`).
   `argocd-update` syncs the dev cluster's app (selected by labels).
 - Stage `prod`: same render, but PR-gated. Pushes a generated branch, opens a PR
   into `addons/prod`, waits for merge, then syncs prod to the POST-merge commit
-  (`outputs['wait-for-pr'].commit`) — the fix for the argocd-update sync loop.
+  (`outputs['wait-for-pr'].commit`), the fix for the argocd-update sync loop.
 - ApplicationSet (clusters generator) stamps each cluster's app w/ its env label
   & points `targetRevision` at `addons/<env>`, so dev tracks `addons/dev` &
   prod tracks `addons/prod`.
 
 ## Apply order
 
-1. Commit the chart + manifests to `main` (per the mapping above) & push.
-2. Register the two EKS clusters w/ the Argo CD instance (install the agent in
-   each, same as the quickstart's `get-agent-manifests | kubectl apply`).
-   Name them `dev` & `prod` to match `cluster-dev.yaml` / `cluster-prod.yaml`.
-3. `akuity argocd apply -f akuity/`  (creates/labels clusters + the ApplicationSet)
-4. `kargo apply -f platform-addons/kargo/project.yaml`
-5. Create git write creds in the new project (chart repo is public, no creds):
+1. Ensure the chart + manifests are committed to `main` & pushed.
+2. Provision the EKS clusters (see `infra/eks/DEPLOY.md`). Name them `dev` &
+   `prod` so they match `cluster-dev.yaml` / `cluster-prod.yaml`.
+3. Declare the clusters + the add-on ApplicationSet on the Argo CD instance.
+   This registers `dev` & `prod` (w/ their `env` labels) plus the
+   ApplicationSet. The clusters show Progressing until an agent connects.
+
+   ```
+   akuity argocd apply -f akuity/
+   ```
+4. Install the Akuity agent into each EKS cluster. The Cluster must already be
+   declared (step 3) so the CLI can fetch its agent manifests. Point kubectl at
+   the cluster first, then apply. The instance name comes from
+   `akuity/argocd.yaml` (`my-argocd-instance`); confirm w/
+   `akuity argocd instance list`.
+
+   ```
+   # dev
+   aws eks update-kubeconfig --name dev --region us-west-1
+   kubectl config current-context        # confirm you're on the dev EKS cluster
+   akuity argocd cluster get-agent-manifests \
+     --instance-name=my-argocd-instance dev | kubectl apply -f -
+
+   # prod (when ready)
+   aws eks update-kubeconfig --name prod --region us-west-1
+   akuity argocd cluster get-agent-manifests \
+     --instance-name=my-argocd-instance prod | kubectl apply -f -
+   ```
+
+   Wait for each cluster to show a green/Healthy status in the Akuity Clusters
+   dashboard before moving on.
+5. `kargo apply -f platform-addons/kargo/project.yaml`
+6. Create git write creds in the new project (chart repo is public, no creds):
 
    ```
    kargo create repo-credentials github-creds \
@@ -52,9 +72,9 @@ render `./src/addons/ingress-nginx` (where `./src` is a checkout of `main`).
      --username ${GITHUB_USER} --password ${KARGO_QUICKSTART_PAT} \
      --repo-url https://github.com/madmatt112/here-be-akuity
    ```
-6. `kargo apply -f platform-addons/kargo/warehouse.yaml`
-7. `kargo apply -f platform-addons/kargo/stages.yaml`
-8. Promote: dev first (creates `addons/dev`), then prod (opens a PR into
+7. `kargo apply -f platform-addons/kargo/warehouse.yaml`
+8. `kargo apply -f platform-addons/kargo/stages.yaml`
+9. Promote: dev first (creates `addons/dev`), then prod (opens a PR into
    `addons/prod`; merge it). The add-on apps go Healthy once their branch exists.
 
 ## Notes / decisions

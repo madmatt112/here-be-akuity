@@ -45,11 +45,7 @@ aws eks update-kubeconfig --name prod --region us-west-1
 kubectl get nodes
 ```
 
-Then register each cluster with the Akuity Argo CD instance and label it (see
-`platform-addons/APPLY.md` steps 2-3): install the agent via
-`akuity argocd cluster get-agent-manifests --instance-name <instance> <name> | kubectl apply -f -`,
-and ensure the Akuity `Cluster` names are `dev` / `prod` with `env` labels so the
-add-on ApplicationSet routes each to `addons/dev` / `addons/prod`.
+Then, register the clusters in ArgoCD, and configure/deploy the ArgoCD & Kargo resources by following `../platform-addons/APPLY.md`
 
 ## Cost
 
