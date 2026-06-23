@@ -180,9 +180,4 @@ spec:
           path: ./out
           targetBranch: env/${{ ctx.stage }}
       - uses: argocd-update
-        config:
-          apps:
-          - name: guestbook-simple-prod
-            sources:
-            - repoURL: ${{ vars.gitRepo }}
-              desiredRevision: ${{ outputs.commit.commit }}
+        config

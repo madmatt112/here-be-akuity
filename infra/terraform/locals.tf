@@ -26,15 +26,19 @@ locals {
     }
   ]...)
 
-  # Kargo git write-credential Secret, built in HCL so the PAT comes from a
-  # sensitive variable and is never committed in a manifest file.
-  kargo_git_credential = {
-    "v1/Secret/platform-addons/github-creds" = jsonencode({
+  # Kargo git write-credential Secrets, built in HCL so the PAT comes from a
+  # sensitive variable and is never committed in a manifest file. Kargo
+  # credentials are namespace-scoped, so one per Project that needs to push.
+  kargo_git_cred_namespaces = ["platform-addons", "kargo-simple"]
+
+  kargo_git_credentials = {
+    for ns in local.kargo_git_cred_namespaces :
+    "v1/Secret/${ns}/github-creds" => jsonencode({
       apiVersion = "v1"
       kind       = "Secret"
       metadata = {
         name      = "github-creds"
-        namespace = "platform-addons"
+        namespace = ns
         labels    = { "kargo.akuity.io/cred-type" = "git" }
       }
       stringData = {
@@ -45,5 +49,4 @@ locals {
     })
   }
 
-  kargo_resources = merge(local.kargo_resources_files, local.kargo_git_credential)
-}
+  kargo_resources = merge(local.kar

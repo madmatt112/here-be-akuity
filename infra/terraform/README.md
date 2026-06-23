@@ -38,10 +38,17 @@ Managed here:
   not committed. The secret *resources* are managed; the values are not in code.
 - The original **k3d quickstart** cluster — replaced by the dev/prod EKS clusters.
 
-Scope note: this covers the platform-addons (platform team) environment. The
-quickstart/guestbook resources are intentionally out of scope; to manage them too,
-drop their YAML into `argocd-manifests/` and `kargo-manifests/` (or a second
-`akp_kargo_instance`).
+Both environments are managed, sharing the one Argo CD instance and one Kargo
+instance:
+
+- **platform-addons** — ingress-nginx add-on across dev+prod EKS (`addon-ingress-nginx`
+  ApplicationSet; Kargo Project `platform-addons`, Warehouse `ingress-nginx`, dev/prod Stages).
+- **quickstart** — guestbook (`guestbook` ApplicationSet; Kargo Project `kargo-simple`,
+  Warehouse `guestbook`, dev/staging/prod Stages).
+
+Because k3d (the original quickstart cluster) isn't Terraform-managed, the guestbook
+ApplicationSet now lands on the dev+prod EKS clusters: its matrix generator
+(clusters x [dev,staging,prod]) produces guestbook in three namespaces on each cluster.
 
 ## Layout
 
@@ -111,6 +118,4 @@ names before importing.
 - `akp` attribute names/nesting were taken from the v0.12 provider docs; if an
   attribute is rejected, check that exact version's schema.
 - Creating instances via `akp_instance` is marked beta by Akuity; for production
-  they suggest referencing manually-created instances via the `akp_instance` data
-  source and managing config/resources around it. Importing (above) achieves the
-  same for what you've already built.
+  they suggest referencing manually-created instances via the `akp_instance`

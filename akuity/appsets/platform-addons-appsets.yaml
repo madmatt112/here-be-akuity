@@ -21,7 +21,7 @@ spec:
         env: '{{metadata.labels.env}}'
       annotations:
         # Authorize the matching Kargo Stage to update this Application.
-        kargo.akuity.io/authorized-stage: 'platform-addons:{{metadata.labels.env}}'
+        kargo.akuity.io/authorized-stage: 'platform-addons:eks-us-west-1-{{metadata.labels.env}}'
     spec:
       project: default
       source:

@@ -7,4 +7,4 @@ spec:
   subscriptions:
   - image:
       repoURL: ghcr.io/madmatt112/guestbook
-      discoveryLimit: 5
+      discovery

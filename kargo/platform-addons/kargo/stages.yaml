@@ -36,7 +36,7 @@ spec:
       - uses: helm-update-chart
         as: update-chart
         config:
-          path: ./src/addons/ingress-nginx
+          path: ./src/app/platform-addons/ingress-nginx
           charts:
           - repository: ${{ vars.addonChartRepo }}
             name: ingress-nginx
@@ -44,12 +44,12 @@ spec:
       # Render the umbrella chart to a single plain-YAML file (RMP artifact).
       - uses: helm-template
         config:
-          path: ./src/addons/ingress-nginx
+          path: ./src/app/platform-addons/ingress-nginx
           releaseName: ingress-nginx
           namespace: ingress-nginx 
           valuesFiles:
-          - ./src/addons/ingress-nginx/values.yaml
-          - ./src/addons/ingress-nginx/dev-values.yaml
+          - ./src/app/platform-addons/ingress-nginx/values.yaml
+          - ./src/app/platform-addons/ingress-nginx/dev-values.yaml
           ignoreMissingValueFiles: true
           buildDependencies: true
           includeCRDs: true
@@ -116,19 +116,19 @@ spec:
       - uses: helm-update-chart
         as: update-chart
         config:
-          path: ./src/addons/ingress-nginx
+          path: ./src/app/platform-addons/ingress-nginx
           charts:
           - repository: ${{ vars.addonChartRepo }}
             name: ingress-nginx
             version: ${{ chartFrom(vars.addonChartRepo, "ingress-nginx").Version }}
       - uses: helm-template
         config:
-          path: ./src/addons/ingress-nginx
+          path: ./src/app/platform-addons/ingress-nginx
           releaseName: ingress-nginx
           namespace: ingress-nginx
           valuesFiles:
-          - ./src/addons/ingress-nginx/values.yaml
-          - ./src/addons/ingress-nginx/prod-values.yaml
+          - ./src/app/platform-addons/ingress-nginx/values.yaml
+          - ./src/app/platform-addons/ingress-nginx/prod-values.yaml
           ignoreMissingValueFiles: true
           buildDependencies: true
           includeCRDs: true
