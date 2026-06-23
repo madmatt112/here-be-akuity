@@ -54,7 +54,7 @@ resource "akp_cluster" "eks" {
     exec = {
       api_version = "client.authentication.k8s.io/v1"
       command     = "aws"
-      args        = ["eks", "get-token", "--cluster-name", each.key, "--region", var.eks_clusters[each.key].region]
+      args        = ["eks", "get-token", "--cluster-name", coalesce(var.eks_clusters[each.key].aws_name, each.key), "--region", var.eks_clusters[each.key].region]
     }
   }
 

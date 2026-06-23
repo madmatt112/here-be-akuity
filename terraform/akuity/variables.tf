@@ -32,17 +32,24 @@ variable "eks_clusters" {
     vpc_cidr = string
     region   = string
     env      = string
+    # Map key is the Akuity cluster name; aws_name is the real AWS EKS cluster
+    # name to look up (defaults to the key). The existing us-west-1 clusters are
+    # named "dev"/"prod" in AWS but registered in Akuity as eks-us-west-1-*.
+    aws_name          = optional(string)
+    cluster_role_name = optional(string) # unused here; kept for tfvars parity with eks/
+    node_role_name    = optional(string) # unused here
+    node_group_name   = optional(string) # unused here
   }))
   description = <<-EOT
-    The EKS clusters to register with the Argo CD instance, keyed by cluster name
-    (must match the AWS EKS cluster names created by the eks/ root). `region`
-    selects which AWS provider looks the cluster up; `env` becomes the Akuity
-    routing label (dev/prod). `vpc_cidr` is unused here but kept so a single tfvars
-    can be shared with the eks/ root.
+    The EKS clusters to register with the Argo CD instance, keyed by the Akuity
+    cluster name. `region` selects which AWS provider looks the cluster up;
+    `aws_name` (default = key) is the real AWS EKS cluster name; `env` becomes the
+    Akuity routing label (dev/prod). The other fields are unused here but kept so a
+    single tfvars can be shared with the eks/ root.
   EOT
   default = {
-    "eks-us-west-1-dev"  = { vpc_cidr = "10.0.0.0/16", region = "us-west-1", env = "dev" }
-    "eks-us-west-1-prod" = { vpc_cidr = "10.1.0.0/16", region = "us-west-1", env = "prod" }
+    "eks-us-west-1-dev"  = { vpc_cidr = "10.0.0.0/16", region = "us-west-1", env = "dev", aws_name = "dev" }
+    "eks-us-west-1-prod" = { vpc_cidr = "10.1.0.0/16", region = "us-west-1", env = "prod", aws_name = "prod" }
     "eks-us-east-1-dev"  = { vpc_cidr = "10.2.0.0/16", region = "us-east-1", env = "dev" }
     "eks-us-east-1-prod" = { vpc_cidr = "10.3.0.0/16", region = "us-east-1", env = "prod" }
   }

@@ -65,7 +65,7 @@ data "aws_iam_policy_document" "cluster_assume" {
 }
 
 resource "aws_iam_role" "cluster" {
-  name               = "eks-${var.cluster_name}-cluster"
+  name               = coalesce(var.cluster_role_name, "eks-${var.cluster_name}-cluster")
   assume_role_policy = data.aws_iam_policy_document.cluster_assume.json
 }
 
@@ -85,7 +85,7 @@ data "aws_iam_policy_document" "node_assume" {
 }
 
 resource "aws_iam_role" "node" {
-  name               = "eks-${var.cluster_name}-node"
+  name               = coalesce(var.node_role_name, "eks-${var.cluster_name}-node")
   assume_role_policy = data.aws_iam_policy_document.node_assume.json
 }
 
@@ -122,7 +122,7 @@ resource "aws_eks_cluster" "this" {
 
 resource "aws_eks_node_group" "this" {
   cluster_name    = aws_eks_cluster.this.name
-  node_group_name = "${var.cluster_name}-ng"
+  node_group_name = coalesce(var.node_group_name, "${var.cluster_name}-ng")
   node_role_arn   = aws_iam_role.node.arn
   subnet_ids      = aws_subnet.public[*].id
   ami_type        = "AL2023_x86_64_STANDARD"
