@@ -12,7 +12,6 @@ CLUSTERS=(
   eks-us-west-1-dev
   eks-us-west-1-prod
   eks-us-east-1-dev
-  eks-us-east-1-prod
 )
 
 # Function to get the health status code

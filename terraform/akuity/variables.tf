@@ -44,7 +44,6 @@ variable "eks_clusters" {
     "eks-us-west-1-dev"  = { vpc_cidr = "10.0.0.0/16", region = "us-west-1", env = "dev" }
     "eks-us-west-1-prod" = { vpc_cidr = "10.1.0.0/16", region = "us-west-1", env = "prod" }
     "eks-us-east-1-dev"  = { vpc_cidr = "10.2.0.0/16", region = "us-east-1", env = "dev" }
-    "eks-us-east-1-prod" = { vpc_cidr = "10.3.0.0/16", region = "us-east-1", env = "prod" }
   }
 }
 

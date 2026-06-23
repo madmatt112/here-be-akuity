@@ -78,7 +78,6 @@ import { to = akp_kargo_instance.kargo,              id = "platform-kargo" }
 import { to = akp_cluster.eks["eks-us-west-1-dev"],  id = "<argocd-instance-id>/eks-us-west-1-dev" }
 import { to = akp_cluster.eks["eks-us-west-1-prod"], id = "<argocd-instance-id>/eks-us-west-1-prod" }
 import { to = akp_cluster.eks["eks-us-east-1-dev"],  id = "<argocd-instance-id>/eks-us-east-1-dev" }
-import { to = akp_cluster.eks["eks-us-east-1-prod"], id = "<argocd-instance-id>/eks-us-east-1-prod" }
 import { to = akp_kargo_agent.agent,                 id = "platform-kargo-agent" }
 ```
 
