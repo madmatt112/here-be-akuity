@@ -21,6 +21,29 @@ organized around a single theme: showing how Akuity and Kargo handle the
 two kinds of workloads platform and development teams run (a **business application** and a
 **shared kubernetes platform component**) and why their promotion models should differ.
 
+## Contents
+
+- [TL;DR](#tldr)
+- [Architecture and overall design](#architecture-and-overall-design)
+  - [The Rendered Manifests Pattern](#the-rendered-manifests-pattern)
+  - [Pattern A: the platform component (cluster-centric)](#pattern-a-the-platform-component-cluster-centric)
+  - [Pattern B: the business application (environment-centric)](#pattern-b-the-business-application-environment-centric)
+  - [ApplicationSets](#applicationsets)
+- [Key design decisions and tradeoffs](#key-design-decisions-and-tradeoffs)
+- [Assumptions](#assumptions)
+- [Experience: friction, defects, and feedback](#experience-friction-defects-and-feedback)
+- [Bonus items explored](#bonus-items-explored)
+- [Status, limitations, and next steps](#status-limitations-and-next-steps)
+- [Repository layout](#repository-layout)
+- [Setup: how to deploy](#setup-how-to-deploy)
+  - [Prerequisites](#prerequisites)
+  - [1. Build the EKS fleet (Terraform)](#1-build-the-eks-fleet-terraform)
+  - [2. Onboard Akuity (Argo CD instance, cluster registrations, agents, appsets)](#2-onboard-akuity-argo-cd-instance-cluster-registrations-agents-appsets)
+  - [3. Apply the Kargo resources](#3-apply-the-kargo-resources)
+  - [4. Promote](#4-promote)
+  - [How the Akuity resources were stood up (CLI, not Terraform)](#how-the-akuity-resources-were-stood-up-cli-not-terraform)
+  - [Terraform: per-root reference](#terraform-per-root-reference)
+
 ## TL;DR
 
 - **Akuity control plane:** hosted Argo CD (`my-argocd-instance`, v3.4.3) and Kargo
