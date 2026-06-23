@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: addon-ingress-nginx
+  namespace: argocd
+spec:
+  goTemplate: false
+  generators:
+  - clusters:
+      selector:
+        matchExpressions:
+        # Never target the Akuity-hosted control-plane cluster.
+        - {key: akuity.io/argo-cd-cluster-name, operator: NotIn, values: [in-cluster]}
+        # Only clusters that declare an env (dev/prod) get this add-on.
+        - {key: env, operator: In, values: [dev, prod]}
+  template:
+    metadata:
+      # One Application per cluster, e.g. ingress-nginx-eks-us-west-1-dev.
+      name: 'ingress-nginx-{{name}}'
+      labels:
+        addon: ingress-nginx
+        env: '{{metadata.labels.env}}'
+        # The per-cluster Kargo deploy stage selects its Application by this label.
+        cluster: '{{name}}'
+      annotations:
+        # Authorize the cluster's own deploy stage to update this Application.
+        # Stage name == cluster name (e.g. platform-addons:eks-us-west-1-dev).
+        kargo.akuity.io/authorized-stage: 'platform-addons:{{name}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/madmatt112/here-be-akuity
+        # Each cluster tracks its own rendered branch (addons/<cluster-name>).
+        targetRevision: 'addons/{{name}}'
+        path: .
+      destination:
+        name: '{{name}}'
+        namespace: ingress-nginx
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
