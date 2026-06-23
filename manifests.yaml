@@ -296,6 +296,9 @@ metadata:
   namespace: ingress-nginx
 spec:
   type: LoadBalancer
+  ipFamilyPolicy: SingleStack
+  ipFamilies: 
+    - IPv4
   ports:
     - name: http
       port: 80
